@@ -1,0 +1,56 @@
+import pandas as pd
+import numpy as np
+el=pd.Series(type(str))
+num_arch=25
+serie=106344
+col=np.arange(25)
+f=np.arange(num_arch)
+e=pd.DataFrame(index=f, columns=col)
+e2=pd.DataFrame(index=f, columns=col)
+for k in range(serie,serie+num_arch):
+    direccion = 'WORKSPACE/files/rgbd/session_2/anto/bedroom1/subsession_1/'
+    nombre = str(k);
+    terminacion = '_labels.txt'
+    nombre_completo = direccion+nombre+terminacion
+    archivo = open(nombre_completo)
+    lineas = archivo.readlines() 
+    r=[]
+    for i in range(15,15+int(lineas[14])):
+            r.append(lineas[i])
+            e.at[k,i-15]=lineas[i]
+
+    e = e.dropna(how='all')
+    e2=e.reset_index()
+    e=e2.drop(['index'],axis=1)
+
+import re
+lst=[]
+cade=[]
+for i in range(0,len(e)):
+    el = e.loc[i].dropna()
+    for j in range(0,len(el)):
+        s=str(el[j])
+        result = re.search(' (.*)\n', s)
+        cade = str(result.group(1))
+        l=list(cade)
+        p=''.join(l[:-2])
+        e2.at[i,j]=p
+        e2.at[i,j+1]="bathroom"
+        str.format(p)
+        lst=[]
+e=e2.drop(['index'],axis=1)
+print(e)
+e2.to_csv(r'alma_bathroom1.txt', header=None, index=None, sep=' ', mode='a')
+
+g=[]
+#print(len(e2))
+for i in range(0,len(e)):
+    for j in range(0,len(e.loc[i])):
+        
+        g.append(e2[j][i])
+        
+frecuenciaPalab=[]
+for w in g:
+    frecuenciaPalab.append(g.count(w))
+print(g)
+print(frecuenciaPalab)
