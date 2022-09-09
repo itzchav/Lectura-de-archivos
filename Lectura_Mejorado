@@ -1,0 +1,100 @@
+import pandas as pd
+import numpy as np
+import re
+#Declaración de variables
+#Declaration of variables
+lst=[]
+cade=[]
+el=pd.Series(type(str))
+
+#Establecer el numero de archivos y columnas
+#Set the number of files and columns
+num_arch=100
+col=np.arange(25)
+
+#Inicializacion de los DataFrame
+#Initialization of the DataFrame
+
+f=np.arange(num_arch)
+e=pd.DataFrame(index=f, columns=col)
+e2=pd.DataFrame(index=f, columns=col)
+eaux=pd.DataFrame(index=f, columns=col)
+
+#Direccion de los archivos a leer
+
+#Address of files to read
+archivos=["session_1/alma/bathroom1/subsession_1/","session_1/alma/bedroom1/subsession_1/","session_1/alma/kitchen1/subsession_1/",
+          "session_2/anto/bathroom1/subsession_1/","session_2/anto/bathroom2/subsession_1/","session_2/anto/bedroom1/subsession_1/","session_2/anto/bedroom2/subsession_1/","session_2/anto/kitchen1/subsession_1/"]
+#Numeración a partir de la cual son llamados los archivos
+# Numbering from which the files are called
+serie=[    100000,                                 100860,                                 101772,                                
+           104856,                                 105604,                                 106344,                                  107328,                                 109986,   113676,     114480]
+
+
+#Arreglos para establecer la habitación y el nombre del archivo
+#Fix to set room and file name
+habitaciones=['bathroom','bedroom','kitchen','bathroom','bathroom','bedroom','bedroom','kitchen','bathroom','bathroom']
+nombre_archivo=['alma_bathroom1','alma_bedroom1','alma_kitchen1','anto_bathroom1','anto_bathroom2','anto_bedroom1','anto_bedroom2','anto_kitchen1']
+#Recorrido de las habitaciones(carpetas) a leer 
+#Sweep of the rooms(folders) to read
+for a in range(0,8):
+    
+    #Recorrido de los archivos de cada habitación 
+    #Sweep files from each room
+    for k in range(serie[a],serie[a]+num_arch):
+        #Para la direccion de las capetas se estableció la cadena fija de cada carpeta, el valor en el vector archivos, el numero de archivo(el cual se va iterando), y la terminación. 
+        #For the address of the folders, the fixed chain of each folder was established, the value in the files vector, the file number (which is iterated), and the termination
+        direccion = 'WORKSPACE/files/rgbd/'
+        numero_de_archivo = str(k);
+        terminacion = '_labels.txt'
+        nombre_completo=direccion+archivos[a]+numero_de_archivo+terminacion
+        #Abrir archivo y lectura por lineas del archivo.
+        #Open file and read by lines of the file.
+        archivo = open(nombre_completo)
+        lineas = archivo.readlines() 
+        r=[]
+        #Extraccion de las lineas de interes, en este caso los elementos hubicados a partir de la linea 15, cada archivo, en la linea 14 establece cuantos objetos fueron observados,
+        #esto permite limitar la lectura unicamente a ese numero de lineas
+        #Extraction of the lines of interest, in this case the elements located from line 15, each file, in line 14 establishes how many objects were observed,
+        #this allows to limit the reading only to that number of lines
+        
+        for i in range(15,15+int(lineas[14])):
+                r.append(lineas[i])
+                e.at[k,i-15]=lineas[i]
+        #DataFrame creado, en el cual se eliminan los archivos que no tienen elementos, se debe reindexar
+        #DataFrame created, in which files that have no elements are deleted, must be reindexed
+        e = e.dropna(how='all')
+        e2=e.reset_index()
+        e=e2.drop(['index'],axis=1)
+    #Codigo limpiar las cadenas de los archivos eliminando el numero de elemento, y si es un elemento repetido
+    #Code clean the file strings removing the element number, and if it is a repeated element
+    #Elemento de entrada: 5 toilet_brush_1
+    #Salida: toilet_brush
+    #Se agrega una columna con la hbaitacion a la que pertenecen la lista de objetos
+    for i in range(0,len(e)):
+        el = e.loc[i].dropna()
+        for j in range(0,len(el)):
+            s=str(el[j])
+            result = re.search(' (.*)\n', s)
+            cade = str(result.group(1))
+            l=list(cade)
+            p=''.join(l[:-2])
+            e2.at[i,j+1]=p
+            e2.at[i,0]=habitaciones[a]+"\t"
+            str.format(p)
+            lst=[]
+    e=e2.drop(['index'],axis=1)
+    
+    print(nombre_archivo[a])
+    #Escritura del DataFrame a un archivo, con separacion de tabulador entre la hbitacion y la serie de elementos
+    #Write the DataFrame to a file, with tab separation between the room and the array of elements
+    e.to_csv(nombre_archivo[a]+'.txt', header=None, index=None, sep=' ', mode='a')
+    #Limpieza del DataFrame
+    f=np.arange(len(e))
+    col=np.arange(len(e.columns))
+    eaux=e.drop(index=f, columns=col)
+    e=eaux
+    e2=eaux
+    el=[]
+    #print(e)
+
